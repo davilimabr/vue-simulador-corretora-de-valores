@@ -7,6 +7,8 @@ import PortfolioView from './PortfolioView.vue';
 import AccountView from './AccountView.vue';
 import marketService from '../services/marketService';
 import accountService from '../services/accountService';
+import orderService from '../services/orderService';
+import walletService from '../services/walletService';
 
 export default {
   name: 'HomeView',
@@ -34,10 +36,7 @@ export default {
       { id: 7, ticker: 'BBAS3', price: 28.9, variationValue: 0.25, variationPercent: 0.87 },
     ]);
 
-    const portfolio = reactive([
-      { id: 1, ticker: 'PETR4', currentPrice: 31.04, quantity: 100, averagePrice: 30.5 },
-      { id: 2, ticker: 'B3SA3', currentPrice: 13.95, quantity: 200, averagePrice: 14.5 },
-    ]);
+    const portfolio = reactive([]);
 
     const accountStatement = reactive({
       balance: 0,
@@ -91,6 +90,27 @@ export default {
       };
     }
 
+    function mapWalletItem(apiItem, index) {
+      return {
+        id: index + 1,
+        ticker: apiItem.tickerAcao,
+        currentPrice: apiItem.precoAtual,
+        quantity: apiItem.qtde,
+        averagePrice: apiItem.precoCompraMedio,
+      };
+    }
+
+    async function fetchWallet() {
+      try {
+        const data = await walletService.getWallet();
+        simulationTime.value = data.horaNegociacao;
+        const mapped = data.acoesCarteira.map(mapWalletItem);
+        portfolio.splice(0, portfolio.length, ...mapped);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     async function addStockToMarket(tickerToAdd) {
       try {
         await marketService.addToWatchlist(tickerToAdd);
@@ -118,12 +138,24 @@ export default {
       }
     }
 
-    function buyStock(payload) {
-      console.log('Simulando request para ordem de compra:', payload);
+    async function buyStock(payload) {
+      try {
+        const order = await orderService.placeBuyOrder(payload.ticker, payload.quantity);
+        await orderService.executeBuyOrder(order.id);
+        await fetchWallet();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    function sellStock(payload) {
-      console.log('Simulando request para ordem de venda:', payload);
+    async function sellStock(payload) {
+      try {
+        const order = await orderService.placeSellOrder(payload.ticker, payload.quantity);
+        await orderService.executeSellOrder(order.id);
+        await fetchWallet();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     async function removeStockFromMarket(tickerToRemove) {
@@ -145,10 +177,11 @@ export default {
       }
     }
 
-    onMounted(() => {
-      fetchWatchlist();
-      fetchStatement();
-    });
+   onMounted(() => {
+     fetchWatchlist();
+     fetchStatement();
+      fetchWallet();
+   });
 
     return {
       activePage,
