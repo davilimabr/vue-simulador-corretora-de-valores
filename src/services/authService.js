@@ -1,5 +1,4 @@
 const API = 'https://simulador-corretora-de-valores.onrender.com/api';
-const SERVICE_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzUwMDk2NTc3LCJleHAiOjE3NTAxMzk3Nzd9.8kEvgmfOPxgs2wbc23BD4KDf9n-avKFpCXzBsxTtdN0';
 
 async function request(url, options) {
   const res = await fetch(url, options);
@@ -16,7 +15,6 @@ export default {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
       },
       body: JSON.stringify({ email, senha })
     });
@@ -31,7 +29,6 @@ export default {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
       },
       body: JSON.stringify({ email, senha })
     });
@@ -43,7 +40,7 @@ export default {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
+        Authorization: token
       }
     });
     localStorage.removeItem('token');
@@ -53,22 +50,26 @@ export default {
   },
 
   async requestResetToken(email) {
+    const token = localStorage.getItem('token');
+
     return request(`${API}/auth/pwd-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
+        Authorization: token
       },
       body: JSON.stringify({ email })
     });
   },
 
   async resetPassword(tokenRecSenha, novaSenha) {
+    const token = localStorage.getItem('token');
+
     return request(`${API}/auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
+        Authorization: token
       },
       body: JSON.stringify({ tokenRecSenha, novaSenha })
     });
@@ -80,7 +81,7 @@ export default {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: SERVICE_TOKEN
+        Authorization: token
       },
       body: JSON.stringify({ senhaAtual, novaSenha })
     });
