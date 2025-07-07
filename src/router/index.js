@@ -5,9 +5,11 @@ import ForgotPasswordView from '../views/auth/ForgotPasswordView.vue';
 import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
 import ChangePasswordView from '../views/auth/ChangePasswordView.vue';
 import HomeView from '../views/HomeView.vue';
+import LandingView from '../views/LandingView.vue';
 
 const routes = [
-  { path: '/', component: HomeView, meta: { requiresAuth: true } },
+  { path: '/', component: LandingView },
+  { path: '/app', component: HomeView, meta: { requiresAuth: true } },
   { path: '/login', component: LoginView },
   { path: '/register', component: RegisterView },
   { path: '/forgot-password', component: ForgotPasswordView },
