@@ -9,7 +9,7 @@ export default {
   name: 'MarketView',
   components: { BuyStockModal, AddStockModal, RemoveStockModal, ClockControls },
   props: { stocks: Array, time: String, availableStocks: Array },
-  emits: ['buy-stock', 'add-stock', 'remove-stock'],
+  emits: ['buy-stock', 'add-stock', 'remove-stock', 'advance-time'],
   setup(props, { emit }) {
     const isAddModalVisible = ref(false);
     const selectedStockForBuy = ref(null);
@@ -49,6 +49,10 @@ export default {
       emit('remove-stock', ticker);
     }
 
+    function handleAdvance(minutes) {
+      emit('advance-time', minutes);
+    }
+
     function formatCurrency(value) {
       return value.toLocaleString('pt-BR', {
         style: 'currency',
@@ -70,6 +74,7 @@ export default {
       openRemoveModal,
       handleRemoveModalClose,
       handleRemoveStock,
+      handleAdvance,
     };
   },
 };
@@ -80,7 +85,7 @@ export default {
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Cotações do Mercado</h4>
-        <ClockControls :time="time" />
+        <ClockControls :time="time" @advance-time="handleAdvance" />
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -95,7 +100,7 @@ export default {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="stock in stocks" :key="stock.id">
+              <tr v-for="stock in stocks" :key="stock.ticker">
                 <td class="fw-bold">{{ stock.ticker }}</td>
                 <td>{{ formatCurrency(stock.price) }}</td>
                 <td :class="stock.variationValue >= 0 ? 'variation-positive' : 'variation-negative'">
