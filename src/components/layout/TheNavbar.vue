@@ -1,4 +1,7 @@
 <script>
+import { useRouter } from 'vue-router';
+import authService from '../../services/authService';
+
 export default {
   name: 'TheNavbar',
   props: {
@@ -7,12 +10,29 @@ export default {
   },
   emits: ['navigate'],
   setup(props, { emit }) {
+    const router = useRouter();
+
     function navigateTo(page) {
       emit('navigate', page);
     }
 
+    async function logout() {
+      try {
+        await authService.logout();
+      } catch (e) {
+        // ignore
+      }
+      router.push('/login');
+    }
+
+    function goChangePwd() {
+      router.push('/change-password');
+    }
+
     return {
       navigateTo,
+      logout,
+      goChangePwd,
     };
   },
 };
@@ -81,9 +101,17 @@ export default {
               class="dropdown-menu dropdown-menu-end"
               aria-labelledby="userDropdown"
             >
-              <li><a class="dropdown-item" href="#">Trocar Senha</a></li>
+              <li>
+                <a class="dropdown-item" href="#" @click.prevent="goChangePwd"
+                  >Trocar Senha</a
+                >
+              </li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Sair (Logout)</a></li>
+              <li>
+                <a class="dropdown-item" href="#" @click.prevent="logout"
+                  >Sair (Logout)</a
+                >
+              </li>
             </ul>
           </div>
         </div>
