@@ -6,6 +6,7 @@ import MarketView from './MarketView.vue';
 import PortfolioView from './PortfolioView.vue';
 import AccountView from './AccountView.vue';
 import marketService from '../services/marketService';
+import accountService from '../services/accountService';
 
 export default {
   name: 'HomeView',
@@ -39,33 +40,8 @@ export default {
     ]);
 
     const accountStatement = reactive({
-      balance: 4050.0,
-      transactions: [
-        {
-          id: 1,
-          dateTime: '01/07/2025 10:00',
-          description: 'Depósito inicial',
-          type: 'Depósito',
-          value: 10000.0,
-          resultingBalance: 10000.0,
-        },
-        {
-          id: 2,
-          dateTime: '02/07/2025 14:10',
-          description: 'Compra de 100 PETR4',
-          type: 'Retirada',
-          value: -3050.0,
-          resultingBalance: 6950.0,
-        },
-        {
-          id: 3,
-          dateTime: '03/07/2025 11:30',
-          description: 'Compra de 200 B3SA3',
-          type: 'Retirada',
-          value: -2900.0,
-          resultingBalance: 4050.0,
-        },
-      ],
+      balance: 0,
+      transactions: []
     });
 
     // --- METHODS ---
@@ -84,12 +60,34 @@ export default {
       }
     }
 
+    async function fetchStatement() {
+      try {
+        const data = await accountService.getStatement();
+        const mapped = data.map(mapTransaction);
+        accountStatement.transactions.splice(0, accountStatement.transactions.length, ...mapped);
+        accountStatement.balance = mapped.length > 0 ? mapped[mapped.length - 1].resultingBalance : 0;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     function mapStock(apiStock) {
       return {
         ticker: apiStock.ticker,
         price: apiStock.precoAtual,
         variationValue: apiStock.variacaoNominal,
         variationPercent: apiStock.variacaoPercentual,
+      };
+    }
+
+    function mapTransaction(apiTx) {
+      return {
+        id: apiTx.id,
+        dateTime: new Date(apiTx.dataHora).toLocaleString('pt-BR'),
+        description: apiTx.descricao,
+        type: apiTx.tipo === 'deposito' ? 'Depósito' : 'Retirada',
+        value: apiTx.tipo === 'deposito' ? parseFloat(apiTx.valor) : -parseFloat(apiTx.valor),
+        resultingBalance: parseFloat(apiTx.saldoApos)
       };
     }
 
@@ -102,12 +100,22 @@ export default {
       }
     }
 
-    function makeDeposit(payload) {
-      console.log('Simulando request para depósito:', payload);
+    async function makeDeposit(payload) {
+      try {
+        await accountService.deposit(payload.description, payload.amount);
+        await fetchStatement();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    function makeWithdrawal(payload) {
-      console.log('Simulando request para retirada:', payload);
+    async function makeWithdrawal(payload) {
+      try {
+        await accountService.withdraw(payload.description, payload.amount);
+        await fetchStatement();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function buyStock(payload) {
@@ -137,7 +145,10 @@ export default {
       }
     }
 
-    onMounted(fetchWatchlist);
+    onMounted(() => {
+      fetchWatchlist();
+      fetchStatement();
+    });
 
     return {
       activePage,
