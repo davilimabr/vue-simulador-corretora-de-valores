@@ -15,7 +15,7 @@
       <p class="success" v-if="success">{{ success }}</p>
     </form>
     <div class="auth-links">
-      <router-link to="/">Voltar</router-link>
+      <router-link to="/app">Voltar</router-link>
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@ const change = async () => {
   try {
     await authService.changePassword(senhaAtual.value, novaSenha.value);
     success.value = 'Senha alterada com sucesso!';
-    setTimeout(() => router.push('/'), 1500);
+    setTimeout(() => router.push('/app'), 1500);
   } catch (err) {
     error.value = err?.error || 'Erro ao trocar senha.';
   }

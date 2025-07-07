@@ -34,7 +34,7 @@ const login = async () => {
   error.value = '';
   try {
     await authService.login(email.value, senha.value);
-    router.push('/');
+    router.push('/app');
   } catch (err) {
     error.value = err?.error || 'Erro ao fazer login.';
   }
