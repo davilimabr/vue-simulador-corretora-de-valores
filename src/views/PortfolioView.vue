@@ -7,7 +7,7 @@ export default {
   name: 'PortfolioView',
   components: { SellStockModal, ClockControls },
   props: { portfolioItems: Array, time: String },
-  emits: ['sell-stock'],
+  emits: ['sell-stock', 'advance-time'],
   setup(props, { emit }) {
     const selectedItemForSell = ref(null);
 
@@ -22,6 +22,10 @@ export default {
     const handleSell = (payload) => {
       emit('sell-stock', payload);
     };
+
+    function handleAdvance(minutes) {
+      emit('advance-time', minutes);
+    }
 
     function calculateProfitLoss(item) {
       return (item.currentPrice - item.averagePrice) * item.quantity;
@@ -43,6 +47,7 @@ export default {
       calculateProfitLoss,
       totalProfitLoss,
       formatCurrency,
+      handleAdvance,
     };
   },
 };
@@ -53,7 +58,7 @@ export default {
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Minha Carteira</h4>
-        <ClockControls :time="time" />
+        <ClockControls :time="time" @advance-time="handleAdvance" />
       </div>
       <div class="card-body">
         <div class="table-responsive">

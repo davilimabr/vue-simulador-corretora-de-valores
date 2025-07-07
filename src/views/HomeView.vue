@@ -1,10 +1,11 @@
 <script>
 import '../style.css';
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import TheNavbar from '../components/layout/TheNavbar.vue';
 import MarketView from './MarketView.vue';
 import PortfolioView from './PortfolioView.vue';
 import AccountView from './AccountView.vue';
+import marketService from '../services/marketService';
 
 export default {
   name: 'HomeView',
@@ -24,12 +25,7 @@ export default {
 
     const simulationTime = ref('14:00');
 
-    const marketStocks = reactive([
-      { id: 1, ticker: 'PETR4', price: 31.04, variationValue: -0.2, variationPercent: -0.64 },
-      { id: 2, ticker: 'VALE5', price: 32.85, variationValue: 2.0, variationPercent: 6.49 },
-      { id: 3, ticker: 'COGN3', price: 2.97, variationValue: 0.08, variationPercent: 2.77 },
-      { id: 4, ticker: 'B3SA3', price: 13.95, variationValue: -0.15, variationPercent: -1.06 },
-    ]);
+    const marketStocks = reactive([]);
 
     const availableToAddStocks = reactive([
       { id: 5, ticker: 'MGLU3', price: 2.5, variationValue: 0.1, variationPercent: 4.17 },
@@ -78,8 +74,32 @@ export default {
       activePage.value = page;
     }
 
-    function addStockToMarket(tickerToAdd) {
-      console.log(`Simulando request para adicionar a ação: ${tickerToAdd}`);
+    async function fetchWatchlist() {
+      try {
+        const data = await marketService.getWatchlist();
+        simulationTime.value = data.horaNegociacao;
+        marketStocks.splice(0, marketStocks.length, ...data.acoes.map(mapStock));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function mapStock(apiStock) {
+      return {
+        ticker: apiStock.ticker,
+        price: apiStock.precoAtual,
+        variationValue: apiStock.variacaoNominal,
+        variationPercent: apiStock.variacaoPercentual,
+      };
+    }
+
+    async function addStockToMarket(tickerToAdd) {
+      try {
+        await marketService.addToWatchlist(tickerToAdd);
+        await fetchWatchlist();
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function makeDeposit(payload) {
@@ -98,9 +118,26 @@ export default {
       console.log('Simulando request para ordem de venda:', payload);
     }
 
-    function removeStockFromMarket(tickerToRemove) {
-      console.log(`Simulando request para remover a ação: ${tickerToRemove}`);
+    async function removeStockFromMarket(tickerToRemove) {
+      try {
+        await marketService.removeFromWatchlist(tickerToRemove);
+        await fetchWatchlist();
+      } catch (e) {
+        console.error(e);
+      }
     }
+
+    async function advanceTime(minutes) {
+      try {
+        const data = await marketService.advanceClock(minutes);
+        simulationTime.value = data.novaHoraNegociacao;
+        marketStocks.splice(0, marketStocks.length, ...data.acoes.map(mapStock));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    onMounted(fetchWatchlist);
 
     return {
       activePage,
@@ -117,6 +154,7 @@ export default {
       buyStock,
       sellStock,
       removeStockFromMarket,
+      advanceTime,
     };
   },
 };
@@ -134,12 +172,14 @@ export default {
       @buy-stock="buyStock"
       @add-stock="addStockToMarket"
       @remove-stock="removeStockFromMarket"
+      @advance-time="advanceTime"
     />
     <PortfolioView
       v-if="activePage === 'carteira'"
       :portfolio-items="portfolio"
       :time="simulationTime"
       @sell-stock="sellStock"
+      @advance-time="advanceTime"
     />
     <AccountView
       v-if="activePage === 'conta-corrente'"
