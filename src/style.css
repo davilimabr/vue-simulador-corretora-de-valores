@@ -1,0 +1,41 @@
+body {
+  background-color: #f8f9fa !important;
+}
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+.card {
+  border: none !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05) !important;
+}
+.table-responsive {
+  margin-top: 1rem !important;
+}
+.variation-positive {
+  color: #198754 !important;
+  font-weight: bold !important;
+}
+.variation-negative {
+  color: #dc3545 !important;
+  font-weight: bold !important;
+}
+@keyframes flash {
+  0%,
+  100% {
+    background-color: transparent !important;
+  }
+  50% {
+    background-color: #fff3cd !important;
+  }
+}
+.flash-update {
+  animation: flash 1s ease-out !important;
+}
+.clock-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  background-color: #e9ecef !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+}
