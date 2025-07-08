@@ -47,6 +47,11 @@ export default {
 
     function showPage(page) {
       activePage.value = page;
+      if (page === 'carteira') {
+        fetchWallet();
+      } else if (page === 'conta-corrente') {
+        fetchStatement();
+      }
     }
 
     async function fetchWatchlist() {
@@ -143,6 +148,7 @@ export default {
         const order = await orderService.placeBuyOrder(payload.ticker, payload.quantity);
         await orderService.executeBuyOrder(order.id);
         await fetchWallet();
+        await fetchStatement();
       } catch (e) {
         console.error(e);
       }
@@ -153,6 +159,7 @@ export default {
         const order = await orderService.placeSellOrder(payload.ticker, payload.quantity);
         await orderService.executeSellOrder(order.id);
         await fetchWallet();
+        await fetchStatement();
       } catch (e) {
         console.error(e);
       }
