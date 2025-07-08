@@ -179,6 +179,8 @@ export default {
         const data = await marketService.advanceClock(minutes);
         simulationTime.value = data.novaHoraNegociacao;
         marketStocks.splice(0, marketStocks.length, ...data.acoes.map(mapStock));
+        await fetchStatement();
+        await fetchWallet();
       } catch (e) {
         console.error(e);
       }
