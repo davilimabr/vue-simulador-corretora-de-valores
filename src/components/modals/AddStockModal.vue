@@ -36,12 +36,7 @@ export default {
       }
     }
 
-    return {
-      modalRef,
-      selectedTicker,
-      closeModal,
-      confirmAdd,
-    };
+    return { modalRef, selectedTicker, closeModal, confirmAdd };
   },
 };
 </script>
@@ -58,8 +53,8 @@ export default {
           <label for="stockSelect" class="form-label">Selecione o ticker da ação</label>
           <select class="form-select" id="stockSelect" v-model="selectedTicker">
             <option disabled value="">Escolha...</option>
-            <option v-for="stock in availableStocks" :key="stock.id" :value="stock.ticker">
-              {{ stock.ticker }}
+            <option v-for="stock in availableStocks" :key="stock" :value="stock">
+              {{ stock }}
             </option>
           </select>
         </div>

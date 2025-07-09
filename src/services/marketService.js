@@ -1,55 +1,49 @@
 const API = 'https://simulador-corretora-de-valores.onrender.com/api';
 
-async function request(url, options) {
-  const res = await fetch(url, options);
-  const data = await res.json();
-  if (!res.ok) {
-    throw data;
-  }
-  return data;
+async function getWatchlist(token) {
+  return fetch(`${API}/market/watchlist`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
 
-export default {
-  async advanceClock(incrementoMinutos) {
-    const token = localStorage.getItem('token');
-    return request(`${API}/market/clock`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      },
-      body: JSON.stringify({ incrementoMinutos })
-    });
-  },
+async function addToWatchlist(ticker, token) {
+  return fetch(`${API}/market/watchlist`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ ticker }),
+  });
+}
 
-  async addToWatchlist(ticker) {
-    const token = localStorage.getItem('token');
-    return request(`${API}/market/watchlist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      },
-      body: JSON.stringify({ ticker })
-    });
-  },
+async function removeFromWatchlist(assetId, token) {
+  return fetch(`${API}/market/watchlist/${assetId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
 
-  async removeFromWatchlist(ticker) {
-    const token = localStorage.getItem('token');
-    return request(`${API}/market/watchlist/${ticker}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: token
-      }
-    });
-  },
+async function advanceClock(minutes, token) {
+  return fetch(`${API}/market/clock`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ incrementoMinutos: minutes }),
+  });
+}
 
-  async getWatchlist() {
-    const token = localStorage.getItem('token');
-    return request(`${API}/market/watchlist`, {
-      headers: {
-        Authorization: token
-      }
-    });
-  }
-};
+async function moveWatchlistStock(tickerA, tickerB, token) {
+  return fetch(`${API}/market/watchlist/${tickerA}/move`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ tickerA, tickerB }),
+  });
+}
+
+export default { getWatchlist, addToWatchlist, removeFromWatchlist, advanceClock, moveWatchlistStock };

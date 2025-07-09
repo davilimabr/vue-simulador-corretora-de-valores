@@ -1,5 +1,5 @@
 <script>
-import { ref } from 'vue';
+import { ref, inject, onMounted } from 'vue';
 import DepositModal from '../components/modals/DepositModal.vue';
 import WithdrawModal from '../components/modals/WithdrawModal.vue';
 
@@ -9,38 +9,53 @@ export default {
     DepositModal,
     WithdrawModal,
   },
-  props: {
-    statement: Object
-  },
-  emits: ['make-deposit', 'make-withdrawal'],
-  setup(props, { emit }) {
+  setup() {
+    // --- DEPENDENCY INJECTIONS ---
+    const statement = inject('accountStatement');
+    const makeDeposit = inject('makeDeposit');
+    const makeWithdrawal = inject('makeWithdrawal');
+    const fetchAccountStatement = inject('fetchAccountStatement');
+
+    // --- LIFECYCLE HOOKS ---
+    onMounted(() => {
+      fetchAccountStatement();
+    });
+
+    // --- LOCAL STATE ---
     const isDepositModalVisible = ref(false);
     const isWithdrawModalVisible = ref(false);
 
-    const openDepositModal = () => isDepositModalVisible.value = true;
-    const closeDepositModal = () => isDepositModalVisible.value = false;
+    // --- UI CONTROL METHODS ---
+    const openDepositModal = () => (isDepositModalVisible.value = true);
+    const closeDepositModal = () => (isDepositModalVisible.value = false);
+    const openWithdrawModal = () => (isWithdrawModalVisible.value = true);
+    const closeWithdrawModal = () => (isWithdrawModalVisible.value = false);
 
-    const openWithdrawModal = () => isWithdrawModalVisible.value = true;
-    const closeWithdrawModal = () => isWithdrawModalVisible.value = false;
-    
+    // --- EVENT HANDLERS ---
     const handleDeposit = (payload) => {
-      emit('make-deposit', payload);
+      makeDeposit(payload);
     };
-
     const handleWithdraw = (payload) => {
-      emit('make-withdrawal', payload);
+      makeWithdrawal(payload);
     };
 
+    // --- HELPER / FORMATTER FUNCTIONS ---
+    function formatDateTime(isoString) {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      return date.toLocaleString('pt-BR');
+    }
     function formatCurrency(value) {
       const formattedValue = Math.abs(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       return value < 0 ? `-${formattedValue}` : `+${formattedValue}`;
     }
-
     function formatBalance(value) {
+      if (value === undefined || value === null) return '';
       return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     return {
+      statement,
       isDepositModalVisible,
       isWithdrawModalVisible,
       openDepositModal,
@@ -50,11 +65,11 @@ export default {
       handleDeposit,
       handleWithdraw,
       formatCurrency,
-      formatBalance
+      formatBalance,
+      formatDateTime,
     };
-  }
-}
-
+  },
+};
 </script>
 
 <template>
@@ -81,16 +96,18 @@ export default {
             </thead>
             <tbody>
               <tr v-for="tx in statement.transactions" :key="tx.id">
-                <td>{{ tx.dateTime }}</td>
-                <td>{{ tx.description }}</td>
+                <td>{{ formatDateTime(tx.dataHora) }}</td>
+                <td>{{ tx.descricao }}</td>
                 <td>
-                  <span class="badge" :class="tx.type === 'Depósito' ? 'bg-success' : 'bg-danger'">{{ tx.type }}</span>
+                  <span class="badge" :class="tx.tipo === 'deposito' ? 'bg-success' : 'bg-danger'">
+                    {{ tx.tipo }}
+                  </span>
                 </td>
-                <td class="text-end" :class="tx.value >= 0 ? 'variation-positive' : 'variation-negative'">
-                  {{ formatCurrency(tx.value) }}
+                <td class="text-end" :class="tx.tipo === 'deposito' ? 'variation-positive' : 'variation-negative'">
+                  {{ formatCurrency(Number(tx.tipo === 'deposito' ? tx.valor:-tx.valor)) }}
                 </td>
                 <td class="text-end fw-bold">
-                  {{ formatBalance(tx.resultingBalance) }}
+                  {{ formatBalance(Number(tx.saldoApos)) }}
                 </td>
               </tr>
             </tbody>
@@ -107,6 +124,5 @@ export default {
   </section>
 
   <DepositModal v-if="isDepositModalVisible" @closed="closeDepositModal" @deposit-confirmed="handleDeposit" />
-
   <WithdrawModal v-if="isWithdrawModalVisible" @closed="closeWithdrawModal" @withdraw-confirmed="handleWithdraw" />
 </template>
