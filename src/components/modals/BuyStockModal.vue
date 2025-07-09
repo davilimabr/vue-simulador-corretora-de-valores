@@ -1,5 +1,5 @@
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive } from 'vue';
 import { Modal } from 'bootstrap';
 
 export default {
@@ -12,7 +12,11 @@ export default {
     const modalRef = ref(null);
     let modalInstance = null;
 
-    const quantityToBuy = ref(1);
+    const form = reactive({
+      quantity: 1,
+      orderType: 'mercado', // 'mercado' ou 'abaixo_de_preco'
+      limitPrice: null,
+    });
 
     onMounted(() => {
       if (modalRef.value) {
@@ -29,18 +33,26 @@ export default {
         modalInstance.hide();
       }
     }
-
     function confirmBuy() {
-      const quantity = parseInt(quantityToBuy.value, 10);
-      if (quantity > 0 /* todo: validar se saldo suficiente */) {
-        emit('buy-confirmed', {
-          ticker: props.stock.ticker,
-          quantity: quantity,
-        });
-        closeModal();
-      } else {
-        alert('Quantidade inválida!');
+      if (form.quantity <= 0) {
+        return alert('A quantidade deve ser maior que zero.');
       }
+      if (form.orderType === 'abaixo_de_preco' && (!form.limitPrice || form.limitPrice <= 0)) {
+        return alert('Por favor, insira um preço limite válido.');
+      }
+
+      const payload = {
+        ticker: props.stock.ticker,
+        quantidade: form.quantity,
+        modo: form.orderType,
+      };
+
+      if (payload.modo === 'abaixo_de_preco') {
+        payload.precoReferencia = form.limitPrice;
+      }
+
+      emit('buy-confirmed', payload);
+      closeModal();
     }
 
     function formatCurrency(value) {
@@ -48,13 +60,7 @@ export default {
       return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    return {
-      modalRef,
-      quantityToBuy,
-      closeModal,
-      confirmBuy,
-      formatCurrency,
-    };
+    return { modalRef, form, closeModal, confirmBuy, formatCurrency };
   },
 };
 </script>
@@ -69,13 +75,41 @@ export default {
         </div>
         <div class="modal-body">
           <p v-if="stock">
-            Preço atual:
-            <strong class="text-primary">{{ formatCurrency(stock.price) }}</strong>
+            Preço atual: <strong class="text-primary">{{ formatCurrency(stock.precoAtual) }}</strong>
           </p>
+
           <div class="mb-3">
             <label for="buyQuantity" class="form-label">Quantidade</label>
-            <!-- <input type="number" class="form-control" id="buyQuantity" value="100" min="1" /> -->
-            <input type="number" class="form-control" id="buyQuantity" v-model="quantityToBuy" value="100" min="1" />
+            <input type="number" class="form-control" id="buyQuantity" v-model="form.quantity" min="1" />
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" value="mercado" id="buyMarket" v-model="form.orderType" />
+              <label class="form-check-label" for="buyMarket">Comprar a valor de mercado</label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                value="abaixo_de_preco"
+                id="buyLimit"
+                v-model="form.orderType"
+              />
+              <label class="form-check-label" for="buyLimit">Comprar se menor ou igual a:</label>
+            </div>
+          </div>
+
+          <div v-if="form.orderType === 'abaixo_de_preco'" class="input-group">
+            <span class="input-group-text">R$</span>
+            <input
+              type="number"
+              class="form-control"
+              placeholder="30,00"
+              v-model="form.limitPrice"
+              step="0.01"
+              min="0.01"
+            />
           </div>
         </div>
         <div class="modal-footer">

@@ -1,89 +1,53 @@
 const API = 'https://simulador-corretora-de-valores.onrender.com/api';
 
-async function request(url, options) {
-  const res = await fetch(url, options);
-  const data = await res.json();
-  if (!res.ok) {
-    throw data;
-  }
-  return data;
+async function register(email, senha) {
+  return fetch(`${API}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha }),
+  });
 }
 
-export default {
-  async login(email, senha) {
-    const data = await request(`${API}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, senha })
-    });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('userId', data.userId);
-    localStorage.setItem('ultimaHoraNegociacao', data.ultimaHoraNegociacao);
-    return data;
-  },
+async function login(email, senha) {
+  return fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha }),
+  });
+}
 
-  async register(email, senha) {
-    return request(`${API}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, senha })
-    });
-  },
+async function logout(token) {
+  return fetch(`${API}/auth/logout`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
 
-  async logout() {
-    const token = localStorage.getItem('token');
-    const data = await request(`${API}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      }
-    });
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('ultimaHoraNegociacao');
-    return data;
-  },
+async function requestPasswordReset(email) {
+  return fetch(`${API}/auth/pwd-token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+}
 
-  async requestResetToken(email) {
-    const token = localStorage.getItem('token');
+async function resetPassword(payload) {
+  return fetch(`${API}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
 
-    return request(`${API}/auth/pwd-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      },
-      body: JSON.stringify({ email })
-    });
-  },
+async function changePassword(payload, token) {
+  return fetch(`${API}/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
 
-  async resetPassword(tokenRecSenha, novaSenha) {
-    const token = localStorage.getItem('token');
-
-    return request(`${API}/auth/reset-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      },
-      body: JSON.stringify({ tokenRecSenha, novaSenha })
-    });
-  },
-
-  async changePassword(senhaAtual, novaSenha) {
-    const token = localStorage.getItem('token');
-    return request(`${API}/auth/change-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token
-      },
-      body: JSON.stringify({ senhaAtual, novaSenha })
-    });
-  }
-};
+export default { register, login, logout, requestPasswordReset, resetPassword, changePassword };

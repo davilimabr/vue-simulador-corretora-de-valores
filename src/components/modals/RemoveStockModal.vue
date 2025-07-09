@@ -1,26 +1,3 @@
-<template>
-  <div class="modal fade" ref="modalRef" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Confirmar Remoção</h5>
-          <button type="button" class="btn-close" @click="closeModal"></button>
-        </div>
-        <div class="modal-body">
-          <p v-if="stock">
-            Deseja parar de acompanhar a ação <strong class="text-danger">{{ stock.ticker }}</strong
-            >?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-          <button type="button" class="btn btn-danger" @click="confirmRemove">Confirmar Remoção</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
 import { onMounted, ref } from 'vue';
 import { Modal } from 'bootstrap';
@@ -56,11 +33,30 @@ export default {
       closeModal();
     }
 
-    return {
-      modalRef,
-      closeModal,
-      confirmRemove,
-    };
+    return { modalRef, closeModal, confirmRemove };
   },
 };
 </script>
+
+<template>
+  <div class="modal fade" ref="modalRef" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmar Remoção</h5>
+          <button type="button" class="btn-close" @click="closeModal"></button>
+        </div>
+        <div class="modal-body">
+          <p v-if="stock">
+            Deseja parar de acompanhar a ação <strong class="text-danger">{{ stock.ticker }}</strong
+            >?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+          <button type="button" class="btn btn-danger" @click="confirmRemove">Confirmar Remoção</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

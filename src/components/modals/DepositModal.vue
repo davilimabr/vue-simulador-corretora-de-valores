@@ -38,13 +38,7 @@ export default {
       }
     }
 
-    return {
-      modalRef,
-      description,
-      amount,
-      closeModal,
-      confirmDeposit,
-    };
+    return { modalRef, description, amount, closeModal, confirmDeposit };
   },
 };
 </script>

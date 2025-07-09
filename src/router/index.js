@@ -1,31 +1,52 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import LoginView from '../views/auth/LoginView.vue';
-import RegisterView from '../views/auth/RegisterView.vue';
-import ForgotPasswordView from '../views/auth/ForgotPasswordView.vue';
-import ResetPasswordView from '../views/auth/ResetPasswordView.vue';
-import ChangePasswordView from '../views/auth/ChangePasswordView.vue';
-import HomeView from '../views/HomeView.vue';
-import LandingView from '../views/LandingView.vue';
+import { createRouter, createWebHistory } from 'vue-router';
+import MarketView from '../views/MarketView.vue';
+import PortfolioView from '../views/PortfolioView.vue';
+import AccountView from '../views/AccountView.vue';
+import AuthView from '../views/AuthView.vue';
 
 const routes = [
-  { path: '/', component: LandingView },
-  { path: '/app', component: HomeView, meta: { requiresAuth: true } },
-  { path: '/login', component: LoginView },
-  { path: '/register', component: RegisterView },
-  { path: '/forgot-password', component: ForgotPasswordView },
-  { path: '/reset-password', component: ResetPasswordView },
-  { path: '/change-password', component: ChangePasswordView, meta: { requiresAuth: true } }
+  {
+    path: '/',
+    redirect: '/market',
+  },
+  {
+    path: '/auth',
+    name: 'Auth',
+    component: AuthView,
+  },
+  {
+    path: '/market',
+    name: 'Market',
+    component: MarketView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: PortfolioView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/account',
+    name: 'Account',
+    component: AccountView,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes
+  history: createWebHistory(),
+  routes,
+  linkActiveClass: 'active fw-bold',
 });
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  if (to.meta.requiresAuth && !token) {
-    next('/login');
+  const userIsLoggedIn = !!localStorage.getItem('user');
+
+  if (to.meta.requiresAuth && !userIsLoggedIn) {
+    next('/auth');
+  } else if (to.name === 'Auth' && userIsLoggedIn) {
+    next('/market');
   } else {
     next();
   }
